@@ -260,7 +260,7 @@ public:
         NOP_cmd     =     B00000000,    // Forces a zero into the RESPONSE register
         RESET_cmd   =     B00000001,    // Performs a software reset of the firmware
         BUSADDR_cmd =     B00000010,    // Modifies I2C address
-        PS_FORCE =        B00000101,    // Forces a single PS measurement
+        PS_FORCE_cmd =    B00000101,    // Forces a single PS measurement
         PSALS_FORCE_cmd = B00000111,    // Forces a single PS and ALS measurement
         PS_PAUSE_cmd   =  B00001001,    // Pauses autonomous PS
         ALS_PAUSE_cmd  =  B00001010,    // Pauses autonomous ALS
