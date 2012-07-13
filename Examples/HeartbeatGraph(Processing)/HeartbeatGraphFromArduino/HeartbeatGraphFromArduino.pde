@@ -24,7 +24,7 @@ float lastValleyReset, lastPeakReset, peak = 600, valley = 0, lastValley  =  0, 
 float peak2, lastPeak2, valley2, lastValley2; 
 float lastPeakResetTime = millis(), lastValleyResetTime = millis(), HBflag = 0;
 boolean peakCycleFlag = false, valleyCycleFlag = false;
-float level, lastData, lastThresh, redVal, IRval;   // variables for heartbeat function
+float level, lastData, lastThresh, redVal, lastRedVal, IRval, lastIRval;   // variables for heartbeat function
 PFont myFont;
 int time, lastTime, hrvCounter;
 int HRVoffset = 400;
@@ -76,10 +76,12 @@ void serialEvent (Serial myPort) {
     // you got the whole thing.  Put the numbers in the
     // color variables:
     if (data.length >=1) {
-      // map them to the range 0-255:
       redVal = data[0];
    //   IRval = data[1];
     }
+
+
+
 
 
     smoothData = smooth( redVal, .97, smoothData);    // note the recirculation of smoothData, won't work without it
@@ -89,7 +91,16 @@ void serialEvent (Serial myPort) {
     rawDataIR = smooth( IRval, .3, rawDataIR);
 
 
-    //    print(redVal);
+
+float iterVariance = (abs(lastRedVal - redVal) / redVal);
+if ( iterVariance > .03 ){
+  print("\t\t\t");
+ println(iterVariance);
+}
+
+lastRedVal = redVal;
+
+        println(redVal);
     //    print("    ");
     //    println(IRval);
 
@@ -170,7 +181,7 @@ int smooth(float data, float filterVal, float smoothedVal) {
 // peakAndFloor looks for waveform peaks and floors to set trigger levels for the next heartbeat
 
 void  getPeakAndFloor(int dataP) {
-  println(dataP);
+  // println(dataP);
 
   peak = constrain(peak, 0, 600);      // keep things in range
   valley = constrain(valley, 0, 600); 
