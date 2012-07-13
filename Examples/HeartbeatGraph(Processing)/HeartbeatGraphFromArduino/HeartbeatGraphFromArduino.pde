@@ -77,12 +77,21 @@ void serialEvent (Serial myPort) {
     // color variables:
     if (data.length >=1) {
       redVal = data[0];
-   //   IRval = data[1];
+      //   IRval = data[1];
     }
 
 
+    // there appears to be some issue in Processing with receiving serial data from Arduino at 57600 badu
+    // some rudimentary attempts at filtering it were not really sucessful
+    // below is code left from the effort
 
+    float iterVariance = (abs(lastRedVal - redVal) / redVal);
+    if ( iterVariance > .03 ) {
+      print("\t\t\t");
+      println(iterVariance);
+    }
 
+    lastRedVal = redVal;
 
     smoothData = smooth( redVal, .97, smoothData);    // note the recirculation of smoothData, won't work without it
     rawData = smooth( redVal, .3, rawData);
@@ -91,16 +100,7 @@ void serialEvent (Serial myPort) {
     rawDataIR = smooth( IRval, .3, rawDataIR);
 
 
-
-float iterVariance = (abs(lastRedVal - redVal) / redVal);
-if ( iterVariance > .03 ){
-  print("\t\t\t");
- println(iterVariance);
-}
-
-lastRedVal = redVal;
-
-        println(redVal);
+    //    println(redVal);         // for debugging input
     //    print("    ");
     //    println(IRval);
 
@@ -121,11 +121,11 @@ lastRedVal = redVal;
      */
 
 
-// subtract the movign baseline to keep the waveform centered in a DC sense
+    // subtract the movign baseline to keep the waveform centered in a DC sense
     redVal = ((redVal - smoothData) / 2) + 350 ;
     IRval = ((IRval - smoothDataIR) / 2) + 350 ;
 
-// limit the waveform to the window
+    // limit the waveform to the window
     redVal = constrain((int)redVal, 0, (int)600);
     IRval = constrain((int)IRval, 0, (int)600);
 
@@ -140,14 +140,14 @@ lastRedVal = redVal;
       // draw the line:
       stroke(255, 120, 0, 180);
       line(lastXPos, lastYPos, xPos, redVal);
-      
-    //       stroke(255, 0, 180, 180);                     // second channel for Infrared data
-    //  line(lastXPos, lastYPosIR, xPos, IRval);
+
+      //       stroke(255, 0, 180, 180);                     // second channel for Infrared data
+      //  line(lastXPos, lastYPosIR, xPos, IRval);
 
       lastXPos = xPos;
       lastYPos = redVal;
-      
-     
+
+
       lastYPosIR = IRval;
 
       // at the edge of the screen, go back to the beginning reset screen
@@ -311,7 +311,7 @@ void   doHRVgraph() {
 
     hrvCounter += 3;
 
-// reset bottom rectangle
+    // reset bottom rectangle
     if (hrvCounter > width - 2) {
       fill(0);
       rect(0, 600, width, height);
