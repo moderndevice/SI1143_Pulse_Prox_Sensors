@@ -11,7 +11,7 @@
  * Code in the public domain but credit for the software is nice :)
  */
  
- const int portForSI114 = 3;        // change to the JeeNode port number used
+ const int portForSI114 = 1;        // change to the JeeNode port number used
 
 /*
  For Arduino users just use the following pins for various port settings
@@ -38,7 +38,7 @@ const int SAMPLES_TO_AVERAGE = 5;             // samples for smoothing 1 to 10 s
                                       // for sending data to HeartbeatGraph in Processing
 // #define POWERLINE_SAMPLING         // samples on an integral of a power line period [eg 1/60 sec]
 // #define AMBIENT_LIGHT_SAMPLING     // also samples ambient slight (slightly slower)
-// #define PRINT_LED_VALS             // print LED raw values
+ // #define PRINT_LED_VALS             // print LED raw values
  #define GET_PULSE_READING            // prints HB, signal size, PSO2 ratio
 
 
@@ -49,7 +49,7 @@ unsigned long IR1;        // read value from infrared LED1
 unsigned long IR2;       // read value from infrared LED2
 unsigned long IR_total;     // IR LED reads added together
 
-int IR_signalSize;          // the heartbeat signal minus the offset
+
 
 PortI2C myBus (portForSI114);
 PulsePlug pulse (myBus); 
@@ -162,10 +162,10 @@ void initPulseSensor(){
 void readPulseSensor(){
 
     static int foundNewFinger, red_signalSize, red_smoothValley;
-    static int red_valley, red_Peak, red_smoothRedPeak, red_smoothRedValley, 
+    static long red_valley, red_Peak, red_smoothRedPeak, red_smoothRedValley, 
                red_HFoutput, red_smoothPeak; // for PSO2 calc
     static  int IR_valley=0, IR_peak=0, IR_smoothPeak, IR_smoothValley, binOut, lastBinOut, BPM;
-    static unsigned long lastTotal, lastMillis,  valleyTime = millis(), lastValleyTime = millis(), peakTime = millis(), lastPeakTime=millis(), lastBeat, beat;
+    static unsigned long lastTotal, lastMillis, IRtotal, valleyTime = millis(), lastValleyTime = millis(), peakTime = millis(), lastPeakTime=millis(), lastBeat, beat;
     static float IR_baseline, red_baseline, IR_HFoutput, IR_HFoutput2, shiftedOutput, LFoutput, hysterisis;
 
     unsigned long total=0, start;
@@ -176,6 +176,7 @@ void readPulseSensor(){
     IR2 = 0;
     total = 0;
     start = millis();
+
          
     
      #ifdef POWERLINE_SAMPLING
@@ -204,7 +205,8 @@ void readPulseSensor(){
     red = red / i;  // get averages
     IR1 = IR1 / i;
     IR2 = IR2 / i;
-    total =  IR1 + IR2;  // red excluded
+    total =  IR1 + IR2 + red;  // red excluded
+    IRtotal = IR1 + IR2;
     
    
 
@@ -263,8 +265,8 @@ void readPulseSensor(){
         // The high freq signal has some hysterisis added. 
         // When the HF signal crosses the shifted LF signal (on a downward slope), 
         // we have found a heartbeat.
-        IR_baseline = smooth(total, 0.99, IR_baseline);   // 
-        IR_HFoutput = smooth((total - IR_baseline), 0.2, IR_HFoutput);    // recycling output - filter to slow down response
+        IR_baseline = smooth(IRtotal, 0.99, IR_baseline);   // 
+        IR_HFoutput = smooth((IRtotal - IR_baseline), 0.2, IR_HFoutput);    // recycling output - filter to slow down response
         
         red_baseline = smooth(red, 0.99, red_baseline); 
         red_HFoutput = smooth((red - red_HFoutput), 0.2, red_HFoutput);
@@ -273,7 +275,7 @@ void readPulseSensor(){
         // fewer red variables are needed
         
         IR_HFoutput2 = IR_HFoutput + hysterisis;     
-        LFoutput = smooth((total - IR_baseline), 0.95, LFoutput);
+        LFoutput = smooth((IRtotal - IR_baseline), 0.95, LFoutput);
         // heartbeat signal is inverted - we are looking for negative peaks
         shiftedOutput = LFoutput - (IR_signalSize * .05);
 
@@ -357,7 +359,7 @@ void readPulseSensor(){
             Serial.print(BPM);  
             Serial.print("\t IR ");
             Serial.print(IR_signalSize);
-            Serial.print("\t PSO2 ");
+            Serial.print("\t PSO2 ");         
             Serial.println(((float)red_baseline / (float)(IR_baseline/2)), 3);                     
         }
 
