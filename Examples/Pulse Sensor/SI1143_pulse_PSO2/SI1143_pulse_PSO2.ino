@@ -11,6 +11,8 @@
  * Code in the public domain but credit for the software is nice :)
  */
  
+ #include <SI114.h>
+ 
  const int portForSI114 = 1;        // change to the JeeNode port number used
 
 /*
@@ -28,7 +30,6 @@
  4             7             17 (A3)
  */
 
-#include <SI114.h>
 
 const int SAMPLES_TO_AVERAGE = 5;             // samples for smoothing 1 to 10 seem useful 5 is default
 // increase for smoother waveform (with less resolution - slower!) 
