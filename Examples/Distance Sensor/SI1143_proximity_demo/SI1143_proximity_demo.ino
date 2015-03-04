@@ -11,6 +11,7 @@
   Connect to pins with 10k series resistors (inputs are 3.3V only)
   Connect Ground.
   Connect 3.3V line to 3.3 volts (PWR line on sensors are not connected).
+  For Arduino Leonardo users, connect SCL and SDA to the pins labelled as such on the board  
   
   For JeeNode users, just set the port used
   
@@ -22,10 +23,10 @@
        4             7             17 (A3)
 */
 
+const int PORT_FOR_SI114 = 1;       // change to the JeeNode port number used, see the pin chart above
+
 #include <SI114.h>
 
-const int PORT_FOR_SI114 = 3;       // change to the JeeNode port number used, see the pin chart above
-             
 const int samples = 4;            // samples for smoothing 1 to 10 seem useful
                                   // increase for smoother waveform (with less resolution) 
 float Avect = 0.0; 
@@ -35,8 +36,8 @@ float Tvect, x, y, angle = 0;
 
 
 // some printing options for experimentation (sketch is about the same)
-#define SEND_TO_PROCESSING_SKETCH
-// #define PRINT_RAW_LED_VALUES   // prints Raw LED values for debug or experimenting
+//#define SEND_TO_PROCESSING_SKETCH
+#define PRINT_RAW_LED_VALUES   // prints Raw LED values for debug or experimenting
 // #define POWERLINE_SAMPLING     // samples on an integral of a power line period [eg 1/60 sec]
 // #define PRINT_AMBIENT_LIGHT_SAMPLING   // also samples ambient slight (slightly slower)
                                           // good for ambient light experiments, comparing output with ambient
@@ -55,6 +56,7 @@ void setup () {
         Serial.println(PORT_FOR_SI114);
     }
     Serial.begin(57600);
+    while (!Serial) ;
     digitalWrite(3, HIGH);
 
     pulse.setReg(PulsePlug::HW_KEY, 0x17);  
@@ -102,6 +104,7 @@ void setup () {
 
 
 void loop(){
+  delay(100);
 
     unsigned long total=0, start;
     int i=0;
@@ -164,7 +167,7 @@ void loop(){
     Serial.print(IR2);
     Serial.print("\t");
     Serial.println((long)total);    
-    Serial.print("\t");          
+    Serial.print("\t");      
 
 #endif                                
                                     

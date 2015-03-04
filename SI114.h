@@ -31,7 +31,18 @@ protected:
     static uint8_t digiPin3()
         { return 1; }
     inline uint8_t anaPin() const
-        { return 0; }
+    { return 0; }
+
+#elif defined(__AVR_ATmega32U4__)
+    inline uint8_t digiPin() const
+        { return portNum ? portNum + 1 : 18; }
+    inline uint8_t digiPin2() const
+        { return portNum ? portNum + 2 : 19; }
+    static uint8_t digiPin3()
+        { return 3; }
+    inline uint8_t anaPin() const
+        { return portNum - 1; }
+    
 #else
     inline uint8_t digiPin() const
         { return portNum ? portNum + 3 : 18; }
@@ -40,9 +51,10 @@ protected:
     static uint8_t digiPin3()
         { return 3; }
     inline uint8_t anaPin() const
-        { return portNum - 1; }
-#endif
+    { return portNum - 1; }
 
+#endif
+    
 public:
     inline Port (uint8_t num) : portNum (num) {}
 
