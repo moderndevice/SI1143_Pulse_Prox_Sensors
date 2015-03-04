@@ -11,19 +11,20 @@
   Connect to pins with 10k series resistors (inputs are 3.3V only)
   Connect Ground.
   Connect 3.3V line to 3.3 volts (PWR line on sensors are not connected).
-  For Arduino Leonardo users, connect SCL and SDA to the pins labelled as such on the board  
+  On the Arduino Leonardo, "port 0" connects to the SDA/SCL pins on the board-- 2 and 3, respectively.
+  
   
   For JeeNode users, just set the port used
   
-  JeeNode Port  SCL ('duino pin)  SDA ('duino pin)
-       0             A5            A4
+  JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
+       0             A4            A5    // Leonardo: SDA is pin 2, SCL is pin 3.
        1             4             14 (A0)
        2             5             15 (A1)
        3             6             16 (A2)
        4             7             17 (A3)
 */
 
-const int PORT_FOR_SI114 = 1;       // change to the JeeNode port number used, see the pin chart above
+const int PORT_FOR_SI114 = 2;       // change to the JeeNode port number used, see the pin chart above
 
 #include <SI114.h>
 
