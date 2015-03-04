@@ -35,9 +35,9 @@ protected:
 
 #elif defined(__AVR_ATmega32U4__)
     inline uint8_t digiPin() const
-        { return portNum ? portNum + 1 : 18; }
+        { return portNum ? portNum + 3 : 2; } // SDA
     inline uint8_t digiPin2() const
-        { return portNum ? portNum + 2 : 19; }
+        { return portNum ? portNum + 17 : 3; } // SCL
     static uint8_t digiPin3()
         { return 3; }
     inline uint8_t anaPin() const
