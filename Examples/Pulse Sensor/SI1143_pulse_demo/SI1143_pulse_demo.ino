@@ -11,13 +11,13 @@
 
 /*
  For Arduino users just use the following pins for various port settings
- Or use port 0 for traditional SDA (A4) and SCL (A5)
- Connect pins with 10k resistors in series
+ Or use port 0 for traditional SDA (A4) and SCL (A5) (2 and 3 on Leonardo)
+ Connect pins with 5k resistors in series
  
  JeeNode users just set the appropriate port
  
- JeeNode Port  SCL ('duino pin)  SDA ('duino pin)
- 0             18 (A5)       19 (A4)
+ JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
+ 0             18 (A4)       19 (A5)
  1             4             14 (A0)
  2             5             15 (A1)
  3             6             16 (A2)

@@ -8,7 +8,7 @@
 
 /*
   For Arduino users use the following pins for various ports
-  Connect to pins with 10k series resistors (inputs are 3.3V only)
+  Connect to pins with 5k series resistors (inputs are 3.3V only)
   Connect Ground.
   Connect 3.3V line to 3.3 volts (PWR line on sensors are not connected).
   On the Arduino Leonardo, "port 0" connects to the SDA/SCL pins on the board-- 2 and 3, respectively.
