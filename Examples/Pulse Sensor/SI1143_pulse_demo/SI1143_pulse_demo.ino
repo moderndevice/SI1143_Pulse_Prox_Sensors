@@ -22,7 +22,17 @@
  2             5             15 (A1)
  3             6             16 (A2)
  4             7             17 (A3)
- */
+
+ On the ATMega2560:
+ JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
+ 0             18            19
+ 1             30            31
+ 2             32            33
+ 3             14            15
+ 4             28            29
+ Tip: SCL is always on the outside edge
+
+*/
 
 
 const int SAMPLES_TO_AVERAGE = 5;             // samples for smoothing 1 to 10 seem useful 5 is default

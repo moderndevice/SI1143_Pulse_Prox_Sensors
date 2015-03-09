@@ -22,6 +22,16 @@
        2             5             15 (A1)
        3             6             16 (A2)
        4             7             17 (A3)
+
+  On the ATMega2560:
+  JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
+  0             18            19
+  1             30            31
+  2             32            33
+  3             14            15
+  4             28            29
+  Tip: SCL is always on the outside edge
+
 */
 
 const int PORT_FOR_SI114 = 2;       // change to the JeeNode port number used, see the pin chart above

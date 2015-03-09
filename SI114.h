@@ -42,7 +42,52 @@ protected:
         { return 3; }
     inline uint8_t anaPin() const
         { return portNum - 1; }
-    
+
+#elif defined(__AVR_ATmega2560__) // not working yet
+   
+    inline uint8_t digiPin() const // SDA
+    { switch(portNum){
+      case 0:
+	return 18;
+	break;
+      case 1:
+	return 30;
+	break;
+      case 2:
+	return 32;
+	break;
+      case 3:
+	return 14;
+	break;
+      case 4:
+	return 28;
+	break;
+      }
+    }
+    inline uint8_t digiPin2() const  // SCL
+    { switch(portNum){
+      case 0:
+	return 19;
+	break;
+      case 1:
+	return 31;
+	break;
+      case 2:
+	return 33;
+	break;
+      case 3:
+	return 15;
+	break;
+      case 4:
+	return 29;
+	break;
+      }
+    }
+    static uint8_t digiPin3()
+    { return 3; }
+    inline uint8_t anaPin() const
+    { return 0; }
+      
 #else
     inline uint8_t digiPin() const
         { return portNum ? portNum + 3 : 18; }
