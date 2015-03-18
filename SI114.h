@@ -334,6 +334,7 @@ public:
     byte getReg (byte reg);
     void setReg (byte reg, byte val);
     void fetchData ();
+    void initPulsePlug (PulsePlug pulsePlug);
     void fetchLedData();
     byte readParam (byte addr);
     void writeParam (byte addr, byte val);

@@ -47,6 +47,50 @@ void PulsePlug::setReg (byte reg, byte val) {
     delay(10);
 }
 
+void PulsePlug::initPulsePlug(PulsePlug pulsePlug){
+    pulsePlug.setReg(PulsePlug::HW_KEY, 0x17);
+    // pulsePlug.setReg(PulsePlug::COMMAND, PulsePlug::RESET_Cmd);
+    
+    Serial.print("PART: ");
+    Serial.print(pulsePlug.getReg(PulsePlug::PART_ID));
+    Serial.print(" REV: ");
+    Serial.print(pulsePlug.getReg(PulsePlug::REV_ID));
+    Serial.print(" SEQ: ");
+    Serial.println(pulsePlug.getReg(PulsePlug::SEQ_ID));
+    
+    pulsePlug.setReg(PulsePlug::INT_CFG, 0x03);       // turn on interrupts
+    pulsePlug.setReg(PulsePlug::IRQ_ENABLE, 0x10);    // turn on interrupt on PS3
+    pulsePlug.setReg(PulsePlug::IRQ_MODE2, 0x01);     // interrupt on ps3 measurement
+    pulsePlug.setReg(PulsePlug::MEAS_RATE, 0x84);     // see datasheet
+    pulsePlug.setReg(PulsePlug::ALS_RATE, 0x08);      // see datasheet
+    pulsePlug.setReg(PulsePlug::PS_RATE, 0x08);       // see datasheet
+    pulsePlug.setReg(PulsePlug::PS_LED21, 0x66 );      // LED current for LEDs 1 (red) & 2 (IR1)
+    pulsePlug.setReg(PulsePlug::PS_LED3, 0x06);        // LED current for LED 3 (IR2)
+    
+    Serial.print( "PS_LED21 = ");
+    Serial.println(pulsePlug.getReg(PulsePlug::PS_LED21), BIN);
+    Serial.print("CHLIST = ");
+    Serial.println(pulsePlug.readParam(0x01), BIN);
+    
+    pulsePlug.writeParam(PulsePlug::PARAM_CH_LIST, 0x77);         // all measurements on
+    
+    // increasing PARAM_PS_ADC_GAIN will increase the LED on time and ADC window
+    // you will see increase in brightness of visible LED's, ADC output, & noise
+    // datasheet warns not to go beyond 4 because chip or LEDs may be damaged
+    pulsePlug.writeParam(PulsePlug::PARAM_PS_ADC_GAIN, 0x00);
+    
+    pulsePlug.writeParam(PulsePlug::PARAM_PSLED12_SELECT, 0x21);  // select LEDs on for readings see datasheet
+    pulsePlug.writeParam(PulsePlug::PARAM_PSLED3_SELECT, 0x04);   //  3 only
+    pulsePlug.writeParam(PulsePlug::PARAM_PS1_ADCMUX, 0x03);      // PS1 photodiode select
+    pulsePlug.writeParam(PulsePlug::PARAM_PS2_ADCMUX, 0x03);      // PS2 photodiode select
+    pulsePlug.writeParam(PulsePlug::PARAM_PS3_ADCMUX, 0x03);      // PS3 photodiode select
+    
+    pulsePlug.writeParam(PulsePlug::PARAM_PS_ADC_COUNTER, B01110000);    // B01110000 is default
+    pulsePlug.setReg(PulsePlug::COMMAND, PulsePlug::PSALS_AUTO_Cmd);     // starts an autonomous read loop
+    
+}
+
+
 void PulsePlug::fetchData () {
     // read out all result registers as lsb-msb pairs of bytes
     send();    
