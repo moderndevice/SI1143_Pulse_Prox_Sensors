@@ -6,15 +6,20 @@
  */
 
 
-/*
-  For Arduino users use the following pins for various ports
- Connect to pins with 5k series resistors (inputs are 3.3V only)
+/* Hardware setup - please consult the pin chart below for your choice of SDA/SCL pins to use
+ for the sensor. Note that this I2C version is strictly bit-banged which makes it a 
+ tad slower than the arduino version.
+ However you can use it on any pins you choose, adding a lot of flexibility.
+ The SI114 is not applicable to I2C daisy chaining on the same I2C line so use different ports
+ for two sensors.
+ 
+ Note that no series resistors are required using this library.
+ If you choose to use series resistors on the data lines, use 4.7 or 5k.
  Connect Ground.
  Connect 3.3V line to 3.3 volts (PWR line on sensors are not connected).
- On the Arduino Leonardo, "port 0" connects to the SDA/SCL pins on the board-- 2 and 3, respectively.
  
  
- For JeeNode users, just set the port used
+ For JeeNode / Arduino / ATmega328 users, just set the port used
  
  JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
  0             A4            A5    // Leonardo: SDA is pin 2, SCL is pin 3.
@@ -30,6 +35,15 @@
  2             32            33
  3             14            15
  4             28            29
+ 
+ 
+ On the MD BBLeo / Leonardo / ATMega32u4:
+ JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
+ 0             2            3
+ 1             4            18 (A0)
+ 2             5            19 (A1)
+ 3             6            20 (A2)
+ 4             7            21 (A3)
  
  */
 
@@ -92,13 +106,14 @@ void loop(){
     SI114Left.fetchData();
     SI114Right.fetchData();
 
-    Serial.print(SI114Right.als_vis);       //  ambient visible
-    Serial.print("\t");
-    Serial.print(SI114Right.als_ir);        //  ambient IR
-    Serial.print("\t");
-    Serial.print(SI114Left.als_vis);        //  ambient visible
+    Serial.print(" left   ");
+    Serial.print(SI114Left.als_vis);        //  left ambient visible
     Serial.print("\t"); 
     Serial.print(SI114Left.als_ir);         //  ambient IR
+    Serial.print("    right ");
+    Serial.print(SI114Right.als_vis);       //  right ambient visible
+    Serial.print("\t");
+    Serial.print(SI114Right.als_ir);        //  ambient IR
     Serial.print("\t");
 
 #endif
@@ -121,6 +136,7 @@ void loop(){
     Serial.print("\t"); 
     Serial.println(rightSI114Total);   
 }
+
 
 
 

@@ -6,31 +6,44 @@
  */
 
 
-/*
-  For Arduino users use the following pins for various ports
-  Connect to pins with 5k series resistors (inputs are 3.3V only)
-  Connect Ground.
-  Connect 3.3V line to 3.3 volts (PWR line on sensors are not connected).
-  On the Arduino Leonardo, "port 0" connects to the SDA/SCL pins on the board-- 2 and 3, respectively.
+/* Hardware setup - please consult the pin chart below for your choice of SDA/SCL pins to use
+ for the sensor. The "Port" settings set both the SDA and SCL pins at one time
+ Note that this I2C version is strictly bit-banged which makes it a 
+ tad slower than the arduino version.
+ However you can use it on any pins you choose, adding a lot of flexibility.
+ The SI114 is not applicable to I2C daisy chaining on the same I2C line so use different ports
+ for two sensors.
+ 
+ Note that no series resistors are required using this library.
+ If you choose to use series resistors on the data lines, use 4.7 or 5k.
+ Connect Ground.
+ Connect 3.3V line to 3.3 volts (PWR line on sensors are not connected).
   
   
-  For JeeNode users, just set the port used
+  For JeeNode / Arduino / ATmega328 users, just set the port used
   
-  JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
+ Port  SDA ('duino pin)  SCL ('duino pin)
        0             A4            A5    // Leonardo: SDA is pin 2, SCL is pin 3.
        1             4             14 (A0)
        2             5             15 (A1)
        3             6             16 (A2)
        4             7             17 (A3)
 
-  On the ATMega2560:
-  JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
+  On the ATMega2560 / Arduino Mega etc:
+  Port  SDA ('duino pin)  SCL ('duino pin)
   0             18            19
   1             30            31
   2             32            33
   3             14            15
   4             28            29
-  Tip: SCL is always on the outside edge
+  
+  On the MD BBLeo / Leonardo / ATMega32u4:
+  Port  SDA ('duino pin)  SCL ('duino pin)
+  0             2            3
+  1             4            18 (A0)
+  2             5            19 (A1)
+  3             6            20 (A2)
+  4             7            21 (A3)
 
 */
 
@@ -49,7 +62,6 @@ float Tvect, x, y, angle = 0;
 // some printing options for experimentation (sketch is about the same)
 //#define SEND_TO_PROCESSING_SKETCH
 #define PRINT_RAW_LED_VALUES   // prints Raw LED values for debug or experimenting
-// #define POWERLINE_SAMPLING     // samples on an integral of a power line period [eg 1/60 sec]
 // #define PRINT_AMBIENT_LIGHT_SAMPLING   // also samples ambient slight (slightly slower)
                                           // good for ambient light experiments, comparing output with ambient
  
@@ -67,50 +79,28 @@ void setup () {
         Serial.println(PORT_FOR_SI114);
     }
     Serial.begin(57600);
-    while (!Serial) ;
-    digitalWrite(3, HIGH);
+    
+    pulse.initPulsePlug();
+    
 
-    pulse.setReg(PulsePlug::HW_KEY, 0x17);  
-    // pulse.setReg(PulsePlug::COMMAND, PulsePlug::RESET_Cmd);
-
-    Serial.print("PART: "); 
-    Serial.print(pulse.getReg(PulsePlug::PART_ID)); 
-    Serial.print(" REV: "); 
-    Serial.print(pulse.getReg(PulsePlug::REV_ID)); 
-    Serial.print(" SEQ: "); 
-    Serial.println(pulse.getReg(PulsePlug::SEQ_ID)); 
-
-    pulse.setReg(PulsePlug::INT_CFG, 0x03);       // turn on interrupts
-    pulse.setReg(PulsePlug::IRQ_ENABLE, 0x10);    // turn on interrupt on PS3
-    pulse.setReg(PulsePlug::IRQ_MODE2, 0x01);     // interrupt on ps3 measurement
-    pulse.setReg(PulsePlug::MEAS_RATE, 0x84);     // see datasheet
-    pulse.setReg(PulsePlug::ALS_RATE, 0x08);      // see datasheet
-    pulse.setReg(PulsePlug::PS_RATE, 0x08);       // see datasheet
-    pulse.setReg(PulsePlug::PS_LED21, 0x66 );      // LED current for LEDs 1 (red) & 2 (IR1)
-    pulse.setReg(PulsePlug::PS_LED3, 0x06);       // LED current for LED 3 (IR2)
-
-    Serial.print( "PS_LED21 = ");                                         
-    Serial.println(pulse.getReg(PulsePlug::PS_LED21), BIN);                                          
-    Serial.print("CHLIST = ");
-    Serial.println(pulse.readParam(0x01), BIN);
-
-    pulse.writeParam(PulsePlug::PARAM_CH_LIST, 0x77);         // all measurements on
-
-    // increasing PARAM_PS_ADC_GAIN will increase the LED on time and ADC window
-    // you will see increase in brightness of visible LED's, ADC output, & noise 
-    // datasheet warns not to go beyond 4 because chip or LEDs may be damaged
-    pulse.writeParam(PulsePlug::PARAM_PS_ADC_GAIN, 0x00);
-
-    pulse.writeParam(PulsePlug::PARAM_PSLED12_SELECT, 0x21);  // select LEDs on for readings see datasheet
-    pulse.writeParam(PulsePlug::PARAM_PSLED3_SELECT, 0x04);   //  3 only
-    pulse.writeParam(PulsePlug::PARAM_PS1_ADCMUX, 0x03);      // PS1 photodiode select
-    pulse.writeParam(PulsePlug::PARAM_PS2_ADCMUX, 0x03);      // PS2 photodiode select
-    pulse.writeParam(PulsePlug::PARAM_PS3_ADCMUX, 0x03);      // PS3 photodiode select  
-
-    pulse.writeParam(PulsePlug::PARAM_PS_ADC_COUNTER, B01110000);    // B01110000 is default                                   
-    pulse.setReg(PulsePlug::COMMAND, PulsePlug::PSALS_AUTO_Cmd);     // starts an autonomous read loop
-    // Serial.println(pulse.getReg(PulsePlug::CHIP_STAT), HEX);  
-
+    pulse.setLEDcurrents(6, 6, 6);
+    // void PulsePlug.setLEDCurrent( byte LED1, byte LED2, byte LED3)
+    // 0 to 15 are valid
+    // 1 = 5.6mA, 2 = 11.2mA, 3 = 22.4mA, 4 = 45mA; 5 = 67mA, 6 =90mA, 7 = 112mA, 8 = 135mA, 9 = 157mA,
+    // 10 = 180mA, 11 = 202mA, 12 = 224mA, 13 = 269mA, 14 = 314mA, 15 = 359mA 
+    // It may be possible to damage the chip and or LEDs with some current / time settings - check that datasheet!
+    
+    pulse.setLEDdrive(1, 2, 4);
+    //void PulsePlug::setLEDdrive(byte LED1pulse, byte LED2pulse, byte LED3pulse){
+     // this sets which LEDs are active on which pulses 
+     // any or none of the LEDs may be active on each PulsePlug
+     //000: NO LED DRIVE
+     //xx1: LED1 Drive Enabled
+     //x1x: LED2 Drive Enabled (Si1142 and Si1143 only. Clear for Si1141)
+     //1xx: LED3 Drive Enabled (Si1143 only. Clear for Si1141 and Si1142)
+     // example setLEDdrive(1, 2, 5); sets LED1 on pulse 1, LED2 on pulse 2, LED3, LED1 on pulse 3
+     
+    
 }
 
 
@@ -125,25 +115,18 @@ void loop(){
     total = 0;
     start = millis();
 
- #ifdef POWERLINE_SAMPLING
 
-    while (millis() - start < 16){   // 60 hz - or use 33 for two cycles
-                                     // 50 hz in Europe use 20, or 40
 
- #else
-
-        while (i < samples){ 
-
- #endif
+ while (i < samples){ 
 
 
  #ifdef PRINT_AMBIENT_LIGHT_SAMPLING   
 
-        pulse.fetchData();
+        pulse.fetchData();    // gets ambient readings and LED (pulsed) readings
 
  #else
  
-        pulse.fetchLedData();
+        pulse.fetchLedData();    // gets just LED (pulsed) readings - bit faster
 
  #endif
         red += pulse.ps1;
@@ -216,7 +199,7 @@ total =  900;
 
 // angle is the resolved angle from vector addition of the three LED values
 // Tvect is the vector amount from vector addition of the three LED values
-//    Basically a ratio of differences of LED values to each other
+// Basically a ratio of differences of LED values to each other
 // total is just the total of raw LED amounts returned, proportional to the distance of objects from the sensor.
 
 

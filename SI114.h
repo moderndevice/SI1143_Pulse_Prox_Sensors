@@ -34,10 +34,44 @@ protected:
     { return 0; }
 
 #elif defined(__AVR_ATmega32U4__)
-    inline uint8_t digiPin() const
-        { return portNum ? portNum + 3 : 2; } // SDA
-    inline uint8_t digiPin2() const
-        { return portNum ? portNum + 17 : 3; } // SCL
+    inline uint8_t digiPin() const // SDA
+    { switch(portNum){  
+      case 0:       // feel free to change these pin defs you won't break anything.
+		return 2;
+		break;
+      case 1:
+		return 4;
+		break;
+      case 2:
+		return 5;
+		break;
+      case 3:
+		return 6;
+		break;
+      case 4:
+		return 7;
+		break;
+      }
+    }
+     inline uint8_t digiPin2() const  // SCL
+    { switch(portNum){
+      case 0:     
+		return 3;
+		break;
+      case 1:
+		return 18;  //A0 etc.
+		break;
+      case 2:
+		return 19;
+		break;
+      case 3:
+		return 20;
+		break;
+      case 4:
+		return 21;
+		break;
+      }
+    }
     static uint8_t digiPin3()
         { return 3; }
     inline uint8_t anaPin() const
@@ -47,7 +81,7 @@ protected:
    
     inline uint8_t digiPin() const // SDA
     { switch(portNum){
-      case 0:
+    case 0:  // feel free to change these pin defs you won't break anything.
 	return 18;
 	break;
       case 1:
@@ -334,7 +368,9 @@ public:
     byte getReg (byte reg);
     void setReg (byte reg, byte val);
     void fetchData ();
-    void initPulsePlug (PulsePlug pulsePlug);
+    void initPulsePlug();
+    void setLEDcurrents(byte LED1, byte LED2, byte LED3);
+    void setLEDdrive(byte LED1pulse, byte LED2pulse, byte LED3pulse);
     void fetchLedData();
     byte readParam (byte addr);
     void writeParam (byte addr, byte val);
