@@ -13,7 +13,8 @@
  
  #include <SI114.h>
  
- const int portForSI114 = 1;        // change to the JeeNode port number used
+ const int portForSI114 = 0;  // this is the port to use for Arduino native I2C pins
+                              // e.g. A4, A5 on an UNO
 
 /*
  For Arduino users just use the following pins for various port settings
