@@ -347,53 +347,6 @@ public:
         { addr = me << 1; }
 };
 
-// The millisecond timer can be used for timeouts up to 60000 milliseconds.
-// Setting the timeout to zero disables the timer.
-//
-// for periodic timeouts, poll the timer object with "if (timer.poll(123)) ..."
-// for one-shot timeouts, call "timer.set(123)" and poll as "if (timer.poll())"
-
-class MilliTimer {
-    word next;
-    byte armed;
-public:
-    MilliTimer () : armed (0) {}
-    
-    byte poll(word ms =0);
-    word remaining() const;
-    byte idle() const { return !armed; }
-    void set(word ms);
-};
-
-// Low-power utility code using the Watchdog Timer (WDT). Requires a WDT interrupt handler, e.g.
-// EMPTY_INTERRUPT(WDT_vect);
-
-// simple task scheduler for times up to 6000 seconds
-class Scheduler {
-    word* tasks;
-    word remaining;
-    byte maxTasks;
-    MilliTimer ms100;
-public:
-    // initialize for a specified maximum number of tasks
-    Scheduler (byte max);
-    Scheduler (word* buf, byte max);
-
-    // return next task to run, -1 if there are none ready to run, but there are tasks waiting, or -2 if there are no tasks waiting (i.e. all are idle)
-    char poll();
-    // same as poll, but wait for event in power-down mode.
-    // Uses Sleepy::loseSomeTime() - see comments there re requiring the watchdog timer. 
-    char pollWaiting();
-    
-    // set a task timer, in tenths of seconds
-    void timer(byte task, word tenths);
-    // cancel a task timer
-    void cancel(byte task);
-    
-    // return true if a task timer is not running
-    byte idle(byte task) { return tasks[task] == ~0; }
-};
-
 
 class PulsePlug : public DeviceI2C {
 public:
