@@ -12,17 +12,18 @@
  */
  
  #include <SI114.h>
- 
- const int portForSI114 = 0;  // this is the port to use for Arduino native I2C pins
-                              // e.g. A4, A5 on an UNO
 
 /*
- For Arduino users just use the following pins for various port settings
- Or use port 0 for traditional SDA (A4) and SCL (A5)
- Connect pins with 10k resistors in series
- 
+ For Arduino users, use the SDA and SCL pins on your controller.
+ For Teensy 3.x/LC users, likewise.
+ Typically pin 18 is SCL, and 19 is SDA.
+
+ The original docs here said to use 10k resisters in series. (Why?)
+ I note that you should additionally have 5k pull-up resistors going to a 3V3 source.
+
+
  JeeNode users just set the appropriate port
- 
+
  JeeNode Port  SCL ('duino pin)  SDA ('duino pin)
  0             18 (A5)       19 (A4)
  1             4             14 (A0)
@@ -52,9 +53,7 @@ unsigned long IR2;       // read value from infrared LED2
 unsigned long IR_total;     // IR LED reads added together
 
 
-
-PortI2C myBus (portForSI114);
-PulsePlug pulse (myBus); 
+PulsePlug pulse; 
 
 void setup () {
     Serial.begin(57600);

@@ -7,33 +7,24 @@
  
 #include <SI114.h> 
  
- const int portForSI114 = 0;        // 0 is the port to use for native Arduino I2C pins on  A4 and A5
-                                    // see below
-
 /*
- For Arduino users just use the following pins for various port settings
- Or use port 0 for traditional SDA (A4) and SCL (A5) (2 and 3 on Leonardo)
- Connect pins with 5k resistors in series
- 
+ For Arduino users, use the SDA and SCL pins on your controller.
+ For Teensy 3.x/LC users, likewise.
+ Typically pin 18 is SCL, and 19 is SDA.
+
+ The original docs here said to use 10k resisters in series. (Why?)
+ I note that you should additionally have 5k pull-up resistors going to a 3V3 source.
+
+
  JeeNode users just set the appropriate port
- 
- JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
- 0             18 (A4)       19 (A5)
+
+ JeeNode Port  SCL ('duino pin)  SDA ('duino pin)
+ 0             18 (A5)       19 (A4)
  1             4             14 (A0)
  2             5             15 (A1)
  3             6             16 (A2)
  4             7             17 (A3)
-
- On the ATMega2560:
- JeeNode Port  SDA ('duino pin)  SCL ('duino pin)
- 0             18            19
- 1             30            31
- 2             32            33
- 3             14            15
- 4             28            29
- Tip: SCL is always on the outside edge
-
-*/
+ */
 
 
 const int SAMPLES_TO_AVERAGE = 5;             // samples for smoothing 1 to 10 seem useful 5 is default
@@ -56,8 +47,7 @@ unsigned long IR2;       // read value from infrared LED2
 unsigned long total;     // all three LED reads added together
 int signalSize;          // the heartbeat signal minus the offset
 
-PortI2C myBus (portForSI114);
-PulsePlug pulse (myBus); 
+PulsePlug pulse;
 
 void setup () {
     Serial.begin(57600);

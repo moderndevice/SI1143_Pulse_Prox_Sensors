@@ -7,8 +7,8 @@
 
 
 #include "SI114.h"
-#include <avr/sleep.h>
-#include <util/atomic.h>
+#include <Wire.h>
+// See https://www.arduino.cc/en/Reference/Wire
 
 // flag bits sent to the receiver
 #define MODE_CHANGE 0x80    // a pin mode was changed
@@ -16,34 +16,46 @@
 #define PWM_CHANGE  0x30    // an analog (pwm) value was changed on port 2..3
 #define ANA_MASK    0x0F    // an analog read was requested on port 1..4
 
+bool PulsePlug::isPresent() {
+  beginTransmission();
+  byte result = endTransmission();
+  if (result == 0) {
+    return true;
+  }
+  else {
+    Serial.print("isPresent() error code = ");
+    Serial.println(result);
+    return false;
+  }
+}
 
 byte PulsePlug::readParam (byte addr) {
     // read from parameter ram
-    send();    
-    write(PulsePlug::COMMAND);
-    write(0x80 | addr); // PARAM_QUERY
-    stop();
+    beginTransmission();
+    Wire.write(PulsePlug::COMMAND);
+    Wire.write(0x80 | addr); // PARAM_QUERY
+    endTransmission();
     delay(10);
     return getReg(PulsePlug::PARAM_RD);
 }
 
 byte PulsePlug::getReg (byte reg) {
     // get a register
-    send();    
-    write(reg);
-    receive();
-    byte result = read(1);
-    stop();
+    beginTransmission();
+    Wire.write(reg);
+    endTransmission();
+    requestData(1);
+    byte result = Wire.read();
     delay(10);
     return result;
 }
 
 void PulsePlug::setReg (byte reg, byte val) {
     // set a register
-    send();    
-    write(reg);
-    write(val);
-    stop();
+    beginTransmission();
+    Wire.write(reg);
+    Wire.write(val);
+    endTransmission();
     delay(10);
 }
 
@@ -112,150 +124,57 @@ LED2 = constrain(LED2, 0, 15);
 LED3 = constrain(LED3, 0, 15);
 
 PulsePlug::setReg(PulsePlug::PS_LED21, (LED2 << 4) | LED1 );
-PulsePlug::setReg(PulsePlug::PS_LED3, LED3);       
+PulsePlug::setReg(PulsePlug::PS_LED3, LED3);
 
 }
 
 void PulsePlug::setLEDdrive(byte LED1pulse, byte LED2pulse, byte LED3pulse){
- // this sets which LEDs are active on which pulses 
+ // this sets which LEDs are active on which pulses
  // any or none of the LEDs may be active on each PulsePlug
  //000: NO LED DRIVE
  //xx1: LED1 Drive Enabled
  //x1x: LED2 Drive Enabled (Si1142 and Si1143 only. Clear for Si1141)
  //1xx: LED3 Drive Enabled (Si1143 only. Clear for Si1141 and Si1142)
  // example setLEDdrive(1, 2, 5); sets LED1 on pulse 1, LED2 on pulse 2, LED3, LED1 on pulse 3
- 
+
 PulsePlug::writeParam(PulsePlug::PARAM_PSLED12_SELECT, (LED1pulse << 4) | LED2pulse );  // select LEDs on for readings see datasheet
-PulsePlug::writeParam(PulsePlug::PARAM_PSLED3_SELECT, LED3pulse);   
+PulsePlug::writeParam(PulsePlug::PARAM_PSLED3_SELECT, LED3pulse);
 
 }
 
+// XXX never called!
 void PulsePlug::fetchData () {
     // read out all result registers as lsb-msb pairs of bytes
-    send();    
-    write(PulsePlug::RESPONSE);
-    receive();
+    beginTransmission();
+    Wire.write(PulsePlug::RESPONSE);
+    endTransmission();
+    requestData(16); // XXX TJC is 16 correct? Original lib had extra read() that was discarded.
+
     byte* p = (byte*) &resp;
     for (byte i = 0; i < 16; ++i)
-        p[i] = read(0);
-    read(1); // just to end cleanly
-    stop();
+        p[i] = Wire.read();
 }
 
-
+// XXX never called!
 void PulsePlug::fetchLedData() {
-
     // read only the LED registers as lsb-msb pairs of bytes
-    send();    
-    write(PulsePlug::PS1_DATA0);
-    receive();
+    beginTransmission();
+    Wire.write(PulsePlug::PS1_DATA0);
+    requestData(6); // XXX TJC Original lib had extra read() that was discarded
+
     byte* q = (byte*) &ps1;
     for (byte i = 0; i < 6; ++i)
-        q[i] = read(0);
-    read(1); // just to end cleanly
-    stop();
+        q[i] = Wire.read();
 }
 
 
 void PulsePlug::writeParam (byte addr, byte val) {
     // write to parameter ram
-    send();    
-    write(PulsePlug::PARAM_WR);
-    write(val);
+    beginTransmission();
+    Wire.write(PulsePlug::PARAM_WR);
+    Wire.write(val);
     // auto-increments into PulsePlug::COMMAND
-    write(0xA0 | addr); // PARAM_SET
-    stop();
+    Wire.write(0xA0 | addr); // PARAM_SET
+    endTransmission();
     delay(10);
 }
-
-
-uint16_t Port::shiftRead(uint8_t bitOrder, uint8_t count) const {
-    uint16_t value = 0, mask = bit(LSBFIRST ? 0 : count - 1);
-    for (uint8_t i = 0; i < count; ++i) {
-        digiWrite2(1);
-        delayMicroseconds(5);
-        if (digiRead())
-            value |= mask;
-        if (bitOrder == LSBFIRST)
-            mask <<= 1;
-        else
-            mask >>= 1;
-        digiWrite2(0);
-        delayMicroseconds(5);
-    }
-    return value;
-}
-
-void Port::shiftWrite(uint8_t bitOrder, uint16_t value, uint8_t count) const {
-    uint16_t mask = bit(LSBFIRST ? 0 : count - 1);
-    for (uint8_t i = 0; i < count; ++i) {
-        digiWrite((value & mask) != 0);
-        if (bitOrder == LSBFIRST)
-            mask <<= 1;
-        else
-            mask >>= 1;
-        digiWrite2(1);
-        digiWrite2(0);
-    }
-}
-
-
-PortI2C::PortI2C (uint8_t num, uint8_t rate)
-    : Port (num), uswait (rate)
-{
-    sdaOut(1);
-    mode2(OUTPUT);
-    sclHi();
-}
-
-uint8_t PortI2C::start(uint8_t addr) const {
-    sclLo();
-    sclHi();
-    sdaOut(0);
-    return write(addr);
-}
-
-void PortI2C::stop() const {
-    sdaOut(0);
-    sclHi();
-    sdaOut(1);
-}
-
-uint8_t PortI2C::write(uint8_t data) const {
-    sclLo();
-    for (uint8_t mask = 0x80; mask != 0; mask >>= 1) {
-        sdaOut(data & mask);
-        sclHi();
-        sclLo();
-    }
-    sdaOut(1);
-    sclHi();
-    uint8_t ack = ! sdaIn();
-    sclLo();
-    return ack;
-}
-
-uint8_t PortI2C::read(uint8_t last) const {
-    uint8_t data = 0;
-    for (uint8_t mask = 0x80; mask != 0; mask >>= 1) {
-        sclHi();
-        if (sdaIn())
-            data |= mask;
-        sclLo();
-    }
-    sdaOut(last);
-    sclHi();
-    sclLo();
-    if (last)
-        stop();
-    sdaOut(1);
-    return data;
-}
-
-bool DeviceI2C::isPresent () const {
-    byte ok = send();
-    stop();
-    return ok;
-}
-
-
