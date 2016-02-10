@@ -28,31 +28,6 @@
   */
 
 
-/*
-    class PortI2C : public Port {
-        uint8_t uswait;
-        inline void hold() const
-            { delayMicroseconds(uswait); }
-        inline void sdaOut(uint8_t value) const
-            { mode(!value); digiWrite(value); }
-        inline uint8_t sdaIn() const
-            { return digiRead(); }
-        inline void sclHi() const
-            { hold(); digiWrite2(1); }
-        inline void sclLo() const
-            { hold(); digiWrite2(0); }
-    public:
-        enum { KHZMAX = 1, KHZ400 = 2, KHZ100 = 9 };
-
-        PortI2C (uint8_t num, uint8_t rate =KHZMAX);
-
-        uint8_t start(uint8_t addr) const;
-        void stop() const;
-        uint8_t write(uint8_t data) const;
-        uint8_t read(uint8_t last) const;
-    };
-*/
-
 class PulsePlug {
 public:
     enum {     // register values
