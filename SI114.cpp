@@ -15,6 +15,11 @@
 #define PWM_CHANGE  0x30    // an analog (pwm) value was changed on port 2..3
 #define ANA_MASK    0x0F    // an analog read was requested on port 1..4
 
+PulsePlug::PulsePlug()
+{
+  Wire.begin();
+}
+
 bool PulsePlug::isPresent() {
   beginTransmission();
   byte result = endTransmission();

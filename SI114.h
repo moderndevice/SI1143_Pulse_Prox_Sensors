@@ -122,18 +122,18 @@ public:
         PSALS_AUTO_Cmd  = B00001111     // Starts/Restarts autonomous ALS and PS loop
     };
 
-    // 0x5A is an 8-bit address indicating the device to communicate with.
     // The Wire library expects 7 bit addresses with the 8th for indicating R/W
-    // so the addr is shifted by a bit.
 
-    const uint8_t i2cAddr = (0x5A << 1);
+    const uint8_t i2cAddr = 0x5A;
+
+    PulsePlug();
 
     void beginTransmission() const
       { Wire.beginTransmission(i2cAddr); }
 
     // Note, could optionally take a boolean(false) to say don't release the bus.
     byte endTransmission() const
-      { Wire.endTransmission(); }
+      { return Wire.endTransmission(); }
 
     // Note, can also take a 3rd parameter; set false to say don't release the bus.
     void requestData(uint8_t count) const
