@@ -57,13 +57,20 @@ PulsePlug pulse;
 
 void setup () {
     Serial.begin(57600);
-    Serial.println("\n Pulse_demo ");
+    for (int i = 0; i < 5; i++) {
+      Serial.println("Pulse monitor");
+      delay(1000);
+    }
 
     if (pulse.isPresent()) {
         Serial.println("SI114x Pulse Sensor found");
+	pulse.id();
     }
     else {
+      while (1) {
         Serial.println("No SI114x found");
+        delay(1000);
+      }
     }
 
     pulse.initSensor();
