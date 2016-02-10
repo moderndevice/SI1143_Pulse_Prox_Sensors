@@ -121,8 +121,111 @@ protected:
     { return 3; }
     inline uint8_t anaPin() const
     { return 0; }
+
+#elif defined(PROCESSOR_TEENSY_LC)
+
+    inline uint8_t digiPin() const // SDA
+    { switch(portNum){
+    case 0:
+        return 18;
+        break;
+    case 1:
+        return 23;
+        break;
+      }
+    }
+
+    inline uint8_t digiPin2() const  // SCL
+    { switch(portNum){
+      case 0:
+          return 19;
+          break;
+      case 1:
+          return 22;
+          break;
+      }
+    }
+
+    static uint8_t digiPin3()
+    { return 3; }
+
+    inline uint8_t anaPin() const
+    { return 0; }
+
+#elif defined(PROCESSOR_TEENSY_3_2)
+
+    inline uint8_t digiPin() const // SDA
+    { switch(portNum){
+    case 0:
+        return 18;
+        break;
+      }
+    }
+
+    inline uint8_t digiPin2() const  // SCL
+    { switch(portNum){
+      case 0:
+          return 19;
+          break;
+      }
+    }
+
+    static uint8_t digiPin3()
+    { return 3; }
+
+    inline uint8_t anaPin() const
+    { return 0; }
+
+#elif defined(PROCESSOR_TEENSY_3_1)
+
+    inline uint8_t digiPin() const // SDA
+    { switch(portNum){
+    case 0:
+        return 18;
+        break;
+      }
+    }
+
+    inline uint8_t digiPin2() const  // SCL
+    { switch(portNum){
+      case 0:
+          return 19;
+          break;
+      }
+    }
+
+    static uint8_t digiPin3()
+    { return 3; }
+
+    inline uint8_t anaPin() const
+    { return 0; }
+
+#elif defined(PROCESSOR_TEENSY_3_0)
+
+    inline uint8_t digiPin() const // SDA
+    { switch(portNum){
+    case 0:
+        return 18;
+        break;
+      }
+    }
+
+    inline uint8_t digiPin2() const  // SCL
+    { switch(portNum){
+      case 0:
+          return 19;
+          break;
+      }
+    }
+
+    static uint8_t digiPin3()
+    { return 3; }
+
+    inline uint8_t anaPin() const
+    { return 0; }
       
 #else
+
     inline uint8_t digiPin() const
         { return portNum ? portNum + 3 : 18; }
     inline uint8_t digiPin2() const
