@@ -41,8 +41,8 @@ const int SAMPLES_TO_AVERAGE = 5;             // samples for smoothing 1 to 10 s
                                       // for sending data to HeartbeatGraph in Processing
 // #define POWERLINE_SAMPLING         // samples on an integral of a power line period [eg 1/60 sec]
 // #define AMBIENT_LIGHT_SAMPLING     // also samples ambient slight (slightly slower)
- // #define PRINT_LED_VALS             // print LED raw values
- #define GET_PULSE_READING            // prints HB, signal size, PSO2 ratio
+// #define PRINT_LED_VALS             // print LED raw values
+#define GET_PULSE_READING            // prints HB, signal size, PSO2 ratio
 
 
 int binOut;     // 1 or 0 depending on state of heartbeat
@@ -60,17 +60,13 @@ void setup () {
     Serial.println("\n Pulse_demo ");
 
     if (pulse.isPresent()) {
-        Serial.print("SI114x Pulse Sensor found on Port ");
-        Serial.println(portForSI114);
+        Serial.println("SI114x Pulse Sensor found");
     }
-        else{
-        Serial.print("No SI114x found on Port ");
-        Serial.println(portForSI114);
+    else {
+        Serial.println("No SI114x found");
     }
-    Serial.begin(57600);
-    digitalWrite(3, HIGH);
 
-    initPulseSensor();
+    pulse.initSensor();
 }
 
 
@@ -94,71 +90,6 @@ float smooth(float data, float filterVal, float smoothedVal){
     return smoothedVal;
 }
 
-
-void initPulseSensor(){
-
-    pulse.setReg(PulsePlug::HW_KEY, 0x17);  
-    // pulse.setReg(PulsePlug::COMMAND, PulsePlug::RESET_Cmd);
-
-    Serial.print("PART: "); 
-    Serial.print(pulse.getReg(PulsePlug::PART_ID)); 
-    Serial.print(" REV: "); 
-    Serial.println(pulse.getReg(PulsePlug::REV_ID)); 
-    Serial.print(" SEQ: "); 
-    Serial.println(pulse.getReg(PulsePlug::SEQ_ID)); 
-
-    pulse.setReg(PulsePlug::INT_CFG, 0x03);       // turn on interrupts
-    pulse.setReg(PulsePlug::IRQ_ENABLE, 0x10);    // turn on interrupt on PS3
-    pulse.setReg(PulsePlug::IRQ_MODE2, 0x01);     // interrupt on ps3 measurement
-    pulse.setReg(PulsePlug::MEAS_RATE, 0x84);     // see datasheet
-    pulse.setReg(PulsePlug::ALS_RATE, 0x08);      // see datasheet
-    pulse.setReg(PulsePlug::PS_RATE, 0x08);       // see datasheet
-
-    // Current setting for LEDs pulsed while taking readings
-    // PS_LED21  Setting for LEDs 1 & 2. LED 2 is high nibble
-    // each LED has 16 possible (0-F in hex) possible settings
-    // see the SI114x datasheet.
-    
-    // These settings should really be autimated with feedback from output
-    // On my todo list but your patch is appreciated :)
-    // support at moderndevice dot com.
-    pulse.setReg(PulsePlug::PS_LED21, 0x39);      // LED current for 2 (IR1 - high nibble) & LEDs 1 (red - low nibble) 
-    pulse.setReg(PulsePlug::PS_LED3, 0x02);       // LED current for LED 3 (IR2)
-
-/*  debug infor for the led currents
-    Serial.print( "PS_LED21 = ");                                         
-    Serial.println(pulse.getReg(PulsePlug::PS_LED21), BIN);                                          
-    Serial.print("CHLIST = ");
-    Serial.println(pulse.readParam(0x01), BIN);
-*/
-    pulse.writeParam(PulsePlug::PARAM_CH_LIST, 0x77);         // all measurements on
-
-    // increasing PARAM_PS_ADC_GAIN will increase the LED on time and ADC window
-    // you will see increase in brightness of visible LED's, ADC output, & noise 
-    // datasheet warns not to go beyond 4 because chip or LEDs may be damaged
-    pulse.writeParam(PulsePlug::PARAM_PS_ADC_GAIN, 0x00);
-
-
-    // You can select which LEDs are energized for each reading.
-    // The settings below (in the comments)
-    // turn on only the LED that "normally" would be read
-    // ie LED1 is pulsed and read first, then LED2 & LED3.
-    pulse.writeParam(PulsePlug::PARAM_PSLED12_SELECT, 0x21);  // 21 select LEDs 2 & 1 (red) only                                                               
-    pulse.writeParam(PulsePlug::PARAM_PSLED3_SELECT, 0x04);   // 4 = LED 3 only
-
-    // Sensors for reading the three LEDs
-    // 0x03: Large IR Photodiode
-    // 0x02: Visible Photodiode - cannot be read with LEDs on - just for ambient measurement
-    // 0x00: Small IR Photodiode
-    pulse.writeParam(PulsePlug::PARAM_PS1_ADCMUX, 0x03);      // PS1 photodiode select 
-    pulse.writeParam(PulsePlug::PARAM_PS2_ADCMUX, 0x03);      // PS2 photodiode select 
-    pulse.writeParam(PulsePlug::PARAM_PS3_ADCMUX, 0x03);      // PS3 photodiode select  
-
-    pulse.writeParam(PulsePlug::PARAM_PS_ADC_COUNTER, B01110000);    // B01110000 is default                                   
-    pulse.setReg(PulsePlug::COMMAND, PulsePlug::PSALS_AUTO_Cmd);     // starts an autonomous read loop
-    // Serial.println(pulse.getReg(PulsePlug::CHIP_STAT), HEX);  
-    Serial.print("end init");
-}
 
 void readPulseSensor(){
 

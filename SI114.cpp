@@ -5,7 +5,6 @@
 // paul@moderndevice.com 6-27-2012
 // 2009-02-13 <jc@wippler.nl> http://opensource.org/licenses/mit-license.php
 
-
 #include "SI114.h"
 #include <Wire.h>
 // See https://www.arduino.cc/en/Reference/Wire
@@ -59,47 +58,64 @@ void PulsePlug::setReg (byte reg, byte val) {
     delay(10);
 }
 
-void PulsePlug::initPulsePlug(){
-    PulsePlug::setReg(PulsePlug::HW_KEY, 0x17);
-    // pulsePlug.setReg(PulsePlug::COMMAND, PulsePlug::RESET_Cmd);
-    
+void PulsePlug::id()
+{
     Serial.print("PART: ");
     Serial.print(PulsePlug::getReg(PulsePlug::PART_ID));
     Serial.print(" REV: ");
     Serial.print(PulsePlug::getReg(PulsePlug::REV_ID));
     Serial.print(" SEQ: ");
     Serial.println(PulsePlug::getReg(PulsePlug::SEQ_ID));
-    
-    PulsePlug::setReg(PulsePlug::INT_CFG, 0x03);       // turn on interrupts
-    PulsePlug::setReg(PulsePlug::IRQ_ENABLE, 0x10);    // turn on interrupt on PS3
-    PulsePlug::setReg(PulsePlug::IRQ_MODE2, 0x01);     // interrupt on ps3 measurement
-    PulsePlug::setReg(PulsePlug::MEAS_RATE, 0x84);     // see datasheet
-    PulsePlug::setReg(PulsePlug::ALS_RATE, 0x08);      // see datasheet
-    PulsePlug::setReg(PulsePlug::PS_RATE, 0x08);       // see datasheet
-    PulsePlug::setReg(PulsePlug::PS_LED21, 0x66 );      // LED current for LEDs 1 (red) & 2 (IR1)
-    PulsePlug::setReg(PulsePlug::PS_LED3, 0x06);        // LED current for LED 3 (IR2)
-    
-    Serial.print( "PS_LED21 = ");
-    Serial.println(PulsePlug::getReg(PulsePlug::PS_LED21), BIN);
-    Serial.print("CHLIST = ");
-    Serial.println(PulsePlug::readParam(0x01), BIN);
-    
-    PulsePlug::writeParam(PulsePlug::PARAM_CH_LIST, 0x77);         // all measurements on
-    
+}
+
+void PulsePlug::initSensor()
+{
+    PulsePlug::setReg(PulsePlug::HW_KEY, 0x17);
+    // pulsePlug.setReg(PulsePlug::COMMAND, PulsePlug::RESET_Cmd);
+    //
+    setReg(PulsePlug::INT_CFG, 0x03);       // turn on interrupts
+    setReg(PulsePlug::IRQ_ENABLE, 0x10);    // turn on interrupt on PS3
+    setReg(PulsePlug::IRQ_MODE2, 0x01);     // interrupt on ps3 measurement
+    setReg(PulsePlug::MEAS_RATE, 0x84);     // 10ms measurement rate
+    setReg(PulsePlug::ALS_RATE, 0x08);      // ALS 1:1 with MEAS
+    setReg(PulsePlug::PS_RATE, 0x08);       // PS 1:1 with MEAS
+
+    // Current setting for LEDs pulsed while taking readings
+    // PS_LED21  Setting for LEDs 1 & 2. LED 2 is high nibble
+    // each LED has 16 possible (0-F in hex) possible settings
+    // see the SI114x datasheet.
+
+    // These settings should really be automated with feedback from output
+    // On my todo list but your patch is appreciated :)
+    // support at moderndevice dot com.
+    setReg(PulsePlug::PS_LED21, 0x39);      // LED current for 2 (IR1 - high nibble) & LEDs 1 (red - low nibble)
+    setReg(PulsePlug::PS_LED3, 0x02);       // LED current for LED 3 (IR2)
+
+    writeParam(PulsePlug::PARAM_CH_LIST, 0x77);         // all measurements on
+
     // increasing PARAM_PS_ADC_GAIN will increase the LED on time and ADC window
     // you will see increase in brightness of visible LED's, ADC output, & noise
     // datasheet warns not to go beyond 4 because chip or LEDs may be damaged
-    PulsePlug::writeParam(PulsePlug::PARAM_PS_ADC_GAIN, 0x00);
-    
-    PulsePlug::writeParam(PulsePlug::PARAM_PSLED12_SELECT, 0x21);  // select LEDs on for readings see datasheet
-    PulsePlug::writeParam(PulsePlug::PARAM_PSLED3_SELECT, 0x04);   //  3 only
-    PulsePlug::writeParam(PulsePlug::PARAM_PS1_ADCMUX, 0x03);      // PS1 photodiode select
-    PulsePlug::writeParam(PulsePlug::PARAM_PS2_ADCMUX, 0x03);      // PS2 photodiode select
-    PulsePlug::writeParam(PulsePlug::PARAM_PS3_ADCMUX, 0x03);      // PS3 photodiode select
-    
-    PulsePlug::writeParam(PulsePlug::PARAM_PS_ADC_COUNTER, B01110000);    // B01110000 is default
-    PulsePlug::setReg(PulsePlug::COMMAND, PulsePlug::PSALS_AUTO_Cmd);     // starts an autonomous read loop
-    
+    writeParam(PulsePlug::PARAM_PS_ADC_GAIN, 0x00);
+
+    // You can select which LEDs are energized for each reading.
+    // The settings below (in the comments)
+    // turn on only the LED that "normally" would be read
+    // ie LED1 is pulsed and read first, then LED2 & LED3.
+    writeParam(PulsePlug::PARAM_PSLED12_SELECT, 0x21);  // 21 select LEDs 2 & 1 (red) only
+    writeParam(PulsePlug::PARAM_PSLED3_SELECT, 0x04);   // 4 = LED 3 only
+
+    // Sensors for reading the three LEDs
+    // 0x03: Large IR Photodiode
+    // 0x02: Visible Photodiode - cannot be read with LEDs on - just for ambient measurement
+    // 0x00: Small IR Photodiode
+    writeParam(PulsePlug::PARAM_PS1_ADCMUX, 0x03);      // PS1 photodiode select
+    writeParam(PulsePlug::PARAM_PS2_ADCMUX, 0x03);      // PS2 photodiode select
+    writeParam(PulsePlug::PARAM_PS3_ADCMUX, 0x03);      // PS3 photodiode select 
+
+
+    writeParam(PulsePlug::PARAM_PS_ADC_COUNTER, B01110000);    // B01110000 is default
+    setReg(PulsePlug::COMMAND, PulsePlug::PSALS_AUTO_Cmd);     // starts an autonomous read loop
 }
 
 void PulsePlug::setLEDcurrents(byte LED1, byte LED2, byte LED3){
@@ -143,6 +159,7 @@ PulsePlug::writeParam(PulsePlug::PARAM_PSLED3_SELECT, LED3pulse);
 }
 
 // XXX never called!
+// Note it returns data via class variable "resp"
 void PulsePlug::fetchData () {
     // read out all result registers as lsb-msb pairs of bytes
     beginTransmission();
@@ -156,6 +173,7 @@ void PulsePlug::fetchData () {
 }
 
 // XXX never called!
+// Note it returns data via class variable "ps1"
 void PulsePlug::fetchLedData() {
     // read only the LED registers as lsb-msb pairs of bytes
     beginTransmission();

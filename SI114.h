@@ -140,10 +140,11 @@ public:
       { Wire.requestFrom(i2cAddr, count); }
 
     bool isPresent();
+    void initSensor();
+    void id();
     byte getReg (byte reg);
     void setReg (byte reg, byte val);
     void fetchData ();
-    void initPulsePlug();
     void setLEDcurrents(byte LED1, byte LED2, byte LED3);
     void setLEDdrive(byte LED1pulse, byte LED2pulse, byte LED3pulse);
     void fetchLedData();
