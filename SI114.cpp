@@ -159,6 +159,7 @@ PulsePlug::writeParam(PulsePlug::PARAM_PSLED3_SELECT, LED3pulse);
 }
 
 // Note it returns data via class variables, and relies upon their ordering by the compiler.
+// Currently.. Broken via my alterations to fetchLedData()
 void PulsePlug::fetchData () {
     // read out all result registers as lsb-msb pairs of bytes
     beginTransmission();
@@ -172,16 +173,24 @@ void PulsePlug::fetchData () {
 }
 
 // Fetch data from the PS1, PS2 and PS3 registers.
-// Note it returns data via class variables, in a manner I really don't like
-void PulsePlug::fetchLedData() {
-    // read only the LED registers as lsb-msb pairs of bytes
+// They are stored as LSB-MSB pairs of bytes there; convert them to 16bit ints here.
+uint16_t* PulsePlug::fetchLedData() {
+    static uint16_t ps[3];
+    static uint16_t tmp;
+
     beginTransmission();
     Wire.write(PulsePlug::PS1_DATA0);
+    endTransmission();
     requestData(6);
 
-    byte* q = (byte*) &ps1;
-    for (byte i = 0; i < 6; ++i)
-        q[i] = Wire.read();
+    for (int i=0; i<=2; i++) {
+        ps[i] = Wire.read();
+
+        tmp = Wire.read();
+        ps[i] += (tmp << 8);
+    }
+
+    return ps;
 }
 
 

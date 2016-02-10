@@ -116,12 +116,12 @@ void readPulseSensor(){
      pulse.fetchData();
      
      #else 
-     pulse.fetchLedData();
+     uint16_t* ledValues = pulse.fetchLedData();
      #endif
      
-     red += pulse.ps1;
-     IR1 += pulse.ps2;
-     IR2 += pulse.ps3;
+     red += ledValues[0];
+     IR1 += ledValues[1];
+     IR2 += ledValues[2];
      i++;
      }
      
@@ -165,16 +165,18 @@ void readPulseSensor(){
     // except this one for Processing heartbeat monitor
     // comment out all the bottom print lines
 
-    if (lastTotal < 20000L && total > 20000L) foundNewFinger = 1;  // found new finger!
+    if (lastTotal < 20000L && total > 20000L) {
+        foundNewFinger = 1;  // found new finger!
+        Serial.println("found new finger");
+    }
 
     lastTotal = total;
-     
+
     // if found a new finger prime filters first 20 times through the loop
     if (++foundNewFinger > 25) foundNewFinger = 25;   // prevent rollover 
 
     if ( foundNewFinger < 20){
         baseline = total - 200;   // take a guess at the baseline to prime smooth filter
-   Serial.println("found new finger");     
     }
     
     else if(total > 20000L) {    // main running function

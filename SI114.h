@@ -147,12 +147,12 @@ public:
     void fetchData ();
     void setLEDcurrents(byte LED1, byte LED2, byte LED3);
     void setLEDdrive(byte LED1pulse, byte LED2pulse, byte LED3pulse);
-    void fetchLedData();
+    uint16_t* fetchLedData();
     byte readParam (byte addr);
     void writeParam (byte addr, byte val);
 
    // variables for output
-   unsigned int resp, als_vis, als_ir, ps1, ps2, ps3, aux, more; // keep in this order!
+   unsigned int resp, als_vis, als_ir, aux, more; // keep in this order!
 };
 
 

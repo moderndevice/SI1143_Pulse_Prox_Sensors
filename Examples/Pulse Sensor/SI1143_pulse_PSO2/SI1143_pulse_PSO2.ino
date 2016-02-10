@@ -125,12 +125,12 @@ void readPulseSensor(){
      pulse.fetchData();
      
      #else 
-     pulse.fetchLedData();
+     uint16_t* ledValues = pulse.fetchLedData();
      #endif
      
-     red += pulse.ps1;
-     IR1 += pulse.ps2;
-     IR2 += pulse.ps3;
+     red += ledValues[0];
+     IR1 += ledValues[1];
+     IR2 += ledValues[2];
      i++;
      }
      
