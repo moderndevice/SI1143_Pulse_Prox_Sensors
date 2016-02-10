@@ -158,27 +158,26 @@ PulsePlug::writeParam(PulsePlug::PARAM_PSLED3_SELECT, LED3pulse);
 
 }
 
-// XXX never called!
-// Note it returns data via class variable "resp"
+// Note it returns data via class variables, and relies upon their ordering by the compiler.
 void PulsePlug::fetchData () {
     // read out all result registers as lsb-msb pairs of bytes
     beginTransmission();
     Wire.write(PulsePlug::RESPONSE);
     endTransmission();
-    requestData(16); // XXX TJC is 16 correct? Original lib had extra read() that was discarded.
+    requestData(16);
 
     byte* p = (byte*) &resp;
     for (byte i = 0; i < 16; ++i)
         p[i] = Wire.read();
 }
 
-// XXX never called!
-// Note it returns data via class variable "ps1"
+// Fetch data from the PS1, PS2 and PS3 registers.
+// Note it returns data via class variables, in a manner I really don't like
 void PulsePlug::fetchLedData() {
     // read only the LED registers as lsb-msb pairs of bytes
     beginTransmission();
     Wire.write(PulsePlug::PS1_DATA0);
-    requestData(6); // XXX TJC Original lib had extra read() that was discarded
+    requestData(6);
 
     byte* q = (byte*) &ps1;
     for (byte i = 0; i < 6; ++i)
