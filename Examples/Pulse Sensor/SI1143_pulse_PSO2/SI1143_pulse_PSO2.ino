@@ -64,7 +64,7 @@ void setup () {
 
     if (pulse.isPresent()) {
         Serial.println("SI114x Pulse Sensor found");
-	pulse.id();
+        pulse.id();
     }
     else {
       while (1) {
