@@ -67,21 +67,24 @@ float Tvect, x, y, angle = 0;
  
 unsigned long lastMillis, red, IR1, IR2;
 
-PortI2C myBus (PORT_FOR_SI114);
-PulsePlug pulse (myBus); 
+PulsePlug pulse;
 
 void setup () {
     Serial.begin(57600);
     Serial.println("\n[pulse_demo]");
 
-    if (!pulse.isPresent()) {
-        Serial.print("No SI114x found on Port ");
-        Serial.println(PORT_FOR_SI114);
+    if (pulse.isPresent()) {
+        Serial.println("SI114x Pulse Sensor found");
+        pulse.id();
     }
-    Serial.begin(57600);
+    else {
+      while (1) {
+        Serial.println("No SI114x found");
+        delay(1000);
+      }
+    }
     
-    pulse.initPulsePlug();
-    
+    pulse.initSensor();
 
     pulse.setLEDcurrents(6, 6, 6);
     // void PulsePlug.setLEDCurrent( byte LED1, byte LED2, byte LED3)
@@ -126,12 +129,13 @@ void loop(){
 
  #else
  
-        pulse.fetchLedData();    // gets just LED (pulsed) readings - bit faster
+        // gets just LED (pulsed) readings - bit faster
+        uint16_t* ledValues = pulse.fetchLedData();
 
  #endif
-        red += pulse.ps1;
-        IR1 += pulse.ps2;
-        IR2 += pulse.ps3;
+        red += ledValues[0];
+        IR1 += ledValues[1];
+        IR2 += ledValues[2];
         i++;
 
     }
