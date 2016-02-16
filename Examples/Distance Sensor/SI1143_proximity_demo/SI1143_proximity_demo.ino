@@ -6,18 +6,18 @@
  */
 
 
-/* Hardware setup - please consult the pin chart below for your choice of SDA/SCL pins to use
- for the sensor. The "Port" settings set both the SDA and SCL pins at one time
- Note that this I2C version is strictly bit-banged which makes it a 
- tad slower than the arduino version.
- However you can use it on any pins you choose, adding a lot of flexibility.
- The SI114 is not applicable to I2C daisy chaining on the same I2C line so use different ports
- for two sensors.
- 
- Note that no series resistors are required using this library.
- If you choose to use series resistors on the data lines, use 4.7 or 5k.
+/*
+ For Arduino users, use the SDA and SCL pins on your controller.
+ For Teensy 3.x/LC users, likewise.
+ Typically pin 18 is SCL, and 19 is SDA.
+
  Connect Ground.
  Connect 3.3V line to 3.3 volts (PWR line on sensors are not connected).
+ I note that you should additionally have 5k pull-up resistors going to a 3V3 source.
+
+ Original docs said:
+ "Note that no series resistors are required using this library.
+ If you choose to use series resistors on the data lines, use 4.7 or 5k."
   
   
   For JeeNode / Arduino / ATmega328 users, just set the port used
@@ -47,8 +47,6 @@
 
 */
 
-const int PORT_FOR_SI114 = 2;       // change to the JeeNode port number used, see the pin chart above
-
 #include <SI114.h>
 
 const int samples = 4;            // samples for smoothing 1 to 10 seem useful
@@ -62,8 +60,8 @@ float Tvect, x, y, angle = 0;
 // some printing options for experimentation (sketch is about the same)
 //#define SEND_TO_PROCESSING_SKETCH
 #define PRINT_RAW_LED_VALUES   // prints Raw LED values for debug or experimenting
-// #define PRINT_AMBIENT_LIGHT_SAMPLING   // also samples ambient slight (slightly slower)
-                                          // good for ambient light experiments, comparing output with ambient
+#define PRINT_AMBIENT_LIGHT_SAMPLING   // also samples ambient slight (slightly slower)
+                                       // good for ambient light experiments, comparing output with ambient
  
 unsigned long lastMillis, red, IR1, IR2;
 
@@ -118,6 +116,11 @@ void loop(){
     total = 0;
     start = millis();
 
+    #ifdef PRINT_AMBIENT_LIGHT_SAMPLING
+    int als_vis, als_ir;
+    als_vis = 0;
+    als_ir = 0;
+    #endif
 
 
  while (i < samples){ 
@@ -125,14 +128,15 @@ void loop(){
 
  #ifdef PRINT_AMBIENT_LIGHT_SAMPLING   
 
-        pulse.fetchData();    // gets ambient readings and LED (pulsed) readings
+        uint16_t* ambientLight = pulse.fetchALSData();
+        als_vis += ambientLight[0];
+        als_ir += ambientLight[1];
 
- #else
+ #endif
  
         // gets just LED (pulsed) readings - bit faster
         uint16_t* ledValues = pulse.fetchLedData();
 
- #endif
         red += ledValues[0];
         IR1 += ledValues[1];
         IR2 += ledValues[2];
@@ -147,11 +151,12 @@ void loop(){
 
  #ifdef PRINT_AMBIENT_LIGHT_SAMPLING
 
-    Serial.print(pulse.resp, HEX);     // resp
+    als_vis = als_vis / i;
+    als_ir = als_ir / i;
+
+    Serial.print(als_vis);       //  ambient visible
     Serial.print("\t");
-    Serial.print(pulse.als_vis);       //  ambient visible
-    Serial.print("\t");
-    Serial.print(pulse.als_ir);        //  ambient IR
+    Serial.print(als_ir);        //  ambient IR
     Serial.print("\t");
    
  #endif
