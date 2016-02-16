@@ -31,12 +31,12 @@ const int SAMPLES_TO_AVERAGE = 5;             // samples for smoothing 1 to 10 s
 // increase for smoother waveform (with less resolution - slower!) 
 
 
-#define SEND_TOTAL_TO_PROCESSING      // Use this option exclusive of other options
+// #define SEND_TOTAL_TO_PROCESSING      // Use this option exclusive of other options
                                       // for sending data to HeartbeatGraph in Processing
 // #define POWERLINE_SAMPLING         // samples on an integral of a power line period [eg 1/60 sec]
-// #define AMBIENT_LIGHT_SAMPLING     // also samples ambient slight (slightly slower)
-// #define PRINT_LED_VALS             // print LED raw values
-// #define GET_PULSE_READING          // prints HB and signal size
+#define AMBIENT_LIGHT_SAMPLING     // also samples ambient slight (slightly slower)
+#define PRINT_LED_VALS             // print LED raw values
+#define GET_PULSE_READING          // prints HB and signal size
 
 
 int binOut;     // 1 or 0 depending on state of heartbeat
@@ -99,6 +99,13 @@ void readPulseSensor(){
     IR1 = 0;
     IR2 = 0;
     total = 0;
+
+    #ifdef AMBIENT_LIGHT_SAMPLING
+    int als_vis, als_ir;
+    als_vis = 0;
+    als_ir = 0;
+    #endif
+
     start = millis();
          
     
@@ -110,15 +117,16 @@ void readPulseSensor(){
      #else     
      while (i < SAMPLES_TO_AVERAGE){      
      #endif
-     
-     
-     #ifdef AMBIENT_LIGHT_SAMPLING   
-     pulse.fetchData();
-     
-     #else 
-     uint16_t* ledValues = pulse.fetchLedData();
+
+
+     #ifdef AMBIENT_LIGHT_SAMPLING
+     uint16_t* ambientLight = pulse.fetchALSData();
+     als_vis += ambientLight[0];
+     als_ir += ambientLight[1];
      #endif
-     
+
+     uint16_t* ledValues = pulse.fetchLedData();
+
      red += ledValues[0];
      IR1 += ledValues[1];
      IR2 += ledValues[2];
@@ -134,11 +142,12 @@ void readPulseSensor(){
 
 #ifdef AMBIENT_LIGHT_SAMPLING
 
-    Serial.print(pulse.resp, HEX);     // resp
+    als_vis = als_vis / i;
+    als_ir = als_ir / i;
+
+    Serial.print(als_vis);       //  ambient visible
     Serial.print("\t");
-    Serial.print(pulse.als_vis);       //  ambient visible
-    Serial.print("\t");
-    Serial.print(pulse.als_ir);        //  ambient IR
+    Serial.print(als_ir);        //  ambient IR
     Serial.print("\t");
 
 #endif
