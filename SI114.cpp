@@ -33,7 +33,7 @@ byte PulsePlug::readParam (byte addr) {
     Wire.write(PulsePlug::COMMAND);
     Wire.write(0x80 | addr); // PARAM_QUERY
     endTransmission();
-    delay(10);
+    delay(10); // XXX Nothing in datasheet indicates this is required; was in original code.
     return getReg(PulsePlug::PARAM_RD);
 }
 
@@ -44,7 +44,7 @@ byte PulsePlug::getReg (byte reg) {
     endTransmission();
     requestData(1);
     byte result = Wire.read();
-    delay(10);
+    delay(10); // XXX Nothing in datasheet indicates this is required; was in original code.
     return result;
 }
 
@@ -54,7 +54,7 @@ void PulsePlug::setReg (byte reg, byte val) {
     Wire.write(reg);
     Wire.write(val);
     endTransmission();
-    delay(10);
+    delay(10); // XXX Nothing in datasheet indicates this is required; was in original code.
 }
 
 void PulsePlug::id()
@@ -201,5 +201,5 @@ void PulsePlug::writeParam (byte addr, byte val) {
     // auto-increments into PulsePlug::COMMAND
     Wire.write(0xA0 | addr); // PARAM_SET
     endTransmission();
-    delay(10);
+    delay(10); // XXX Nothing in datasheet indicates this is required; was in original code.
 }
