@@ -2,22 +2,22 @@
  * http://moderndevice.com/product/si1143-proximity-sensors/
  * Reads the Proximity Sensor and either prints raw LED data or angular data 
  * depending the options chosen in the #define's below
- * Paul Badger, Gavin Atkinson, Jean-Claude Wippler  2013
+ * Toby Corkindale, Paul Badger, Gavin Atkinson, Jean-Claude Wippler  2013-2016
  */
 
 
-/* Hardware setup - please consult the pin chart below for your choice of SDA/SCL pins to use
- for the sensor. The "Port" settings set both the SDA and SCL pins at one time
- Note that this I2C version is strictly bit-banged which makes it a 
- tad slower than the arduino version.
- However you can use it on any pins you choose, adding a lot of flexibility.
- The SI114 is not applicable to I2C daisy chaining on the same I2C line so use different ports
- for two sensors.
- 
- Note that no series resistors are required using this library.
- If you choose to use series resistors on the data lines, use 4.7 or 5k.
+/*
+ For Arduino users, use the SDA and SCL pins on your controller.
+ For Teensy 3.x/LC users, likewise.
+ Typically pin 18 is SCL, and 19 is SDA.
+
  Connect Ground.
  Connect 3.3V line to 3.3 volts (PWR line on sensors are not connected).
+ I note that you should additionally have 5k pull-up resistors going to a 3V3 source.
+
+ Original docs said:
+ "Note that no series resistors are required using this library.
+ If you choose to use series resistors on the data lines, use 4.7 or 5k."
   
   
   For JeeNode / Arduino / ATmega328 users, just set the port used
@@ -47,8 +47,6 @@
 
 */
 
-const int PORT_FOR_SI114 = 2;       // change to the JeeNode port number used, see the pin chart above
-
 #include <SI114.h>
 
 const int samples = 4;            // samples for smoothing 1 to 10 seem useful
@@ -62,26 +60,29 @@ float Tvect, x, y, angle = 0;
 // some printing options for experimentation (sketch is about the same)
 //#define SEND_TO_PROCESSING_SKETCH
 #define PRINT_RAW_LED_VALUES   // prints Raw LED values for debug or experimenting
-// #define PRINT_AMBIENT_LIGHT_SAMPLING   // also samples ambient slight (slightly slower)
-                                          // good for ambient light experiments, comparing output with ambient
+#define PRINT_AMBIENT_LIGHT_SAMPLING   // also samples ambient slight (slightly slower)
+                                       // good for ambient light experiments, comparing output with ambient
  
 unsigned long lastMillis, red, IR1, IR2;
 
-PortI2C myBus (PORT_FOR_SI114);
-PulsePlug pulse (myBus); 
+PulsePlug pulse;
 
 void setup () {
     Serial.begin(57600);
     Serial.println("\n[pulse_demo]");
 
-    if (!pulse.isPresent()) {
-        Serial.print("No SI114x found on Port ");
-        Serial.println(PORT_FOR_SI114);
+    if (pulse.isPresent()) {
+        Serial.println("SI114x Pulse Sensor found");
+        pulse.id();
     }
-    Serial.begin(57600);
+    else {
+      while (1) {
+        Serial.println("No SI114x found");
+        delay(1000);
+      }
+    }
     
-    pulse.initPulsePlug();
-    
+    pulse.initSensor();
 
     pulse.setLEDcurrents(6, 6, 6);
     // void PulsePlug.setLEDCurrent( byte LED1, byte LED2, byte LED3)
@@ -115,6 +116,11 @@ void loop(){
     total = 0;
     start = millis();
 
+    #ifdef PRINT_AMBIENT_LIGHT_SAMPLING
+    int als_vis, als_ir;
+    als_vis = 0;
+    als_ir = 0;
+    #endif
 
 
  while (i < samples){ 
@@ -122,16 +128,18 @@ void loop(){
 
  #ifdef PRINT_AMBIENT_LIGHT_SAMPLING   
 
-        pulse.fetchData();    // gets ambient readings and LED (pulsed) readings
-
- #else
- 
-        pulse.fetchLedData();    // gets just LED (pulsed) readings - bit faster
+        uint16_t* ambientLight = pulse.fetchALSData();
+        als_vis += ambientLight[0];
+        als_ir += ambientLight[1];
 
  #endif
-        red += pulse.ps1;
-        IR1 += pulse.ps2;
-        IR2 += pulse.ps3;
+ 
+        // gets just LED (pulsed) readings - bit faster
+        uint16_t* ledValues = pulse.fetchLedData();
+
+        red += ledValues[0];
+        IR1 += ledValues[1];
+        IR2 += ledValues[2];
         i++;
 
     }
@@ -143,11 +151,12 @@ void loop(){
 
  #ifdef PRINT_AMBIENT_LIGHT_SAMPLING
 
-    Serial.print(pulse.resp, HEX);     // resp
+    als_vis = als_vis / i;
+    als_ir = als_ir / i;
+
+    Serial.print(als_vis);       //  ambient visible
     Serial.print("\t");
-    Serial.print(pulse.als_vis);       //  ambient visible
-    Serial.print("\t");
-    Serial.print(pulse.als_ir);        //  ambient IR
+    Serial.print(als_ir);        //  ambient IR
     Serial.print("\t");
    
  #endif
