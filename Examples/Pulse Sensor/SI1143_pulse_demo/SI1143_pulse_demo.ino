@@ -2,6 +2,7 @@
  * demo code for the Modern Device SI1143-based pulse sensor
  * http://moderndevice.com/product/pulse-heartbeat-sensor-pulse-sensor-1x/
  * Paul Badger 2013 with plenty of coding help from Jean-Claude Wippler
+ * Modified by Toby Corkindale Feb 2016 to use Wire library.
  * Hardware setup - please read the chart below and set the appropriate options
  */
  

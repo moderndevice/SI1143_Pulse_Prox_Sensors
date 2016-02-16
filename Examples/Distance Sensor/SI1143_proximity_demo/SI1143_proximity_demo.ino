@@ -2,7 +2,7 @@
  * http://moderndevice.com/product/si1143-proximity-sensors/
  * Reads the Proximity Sensor and either prints raw LED data or angular data 
  * depending the options chosen in the #define's below
- * Paul Badger, Gavin Atkinson, Jean-Claude Wippler  2013
+ * Toby Corkindale, Paul Badger, Gavin Atkinson, Jean-Claude Wippler  2013-2016
  */
 
 

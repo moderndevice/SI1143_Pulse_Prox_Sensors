@@ -1,9 +1,11 @@
 // SI114.h
 // Code for the Modern Device Pulse Sensor
 // Based on the SI1143 chip
-// Also includes subset of JeeLabs Ports library - thanks JCW!
+// Heavily updated by Toby Corkindale to use the Wire library,
+// amongst other changes. February 2016.
+// https://github.com/TJC
+// Original version by:
 // paul@moderndevice.com 6-27-2012
-// 2009-02-13 <jc@wippler.nl> http://opensource.org/licenses/mit-license.php
 
 #include "SI114.h"
 #include <Wire.h>
