@@ -157,18 +157,25 @@ PulsePlug::writeParam(PulsePlug::PARAM_PSLED3_SELECT, LED3pulse);
 
 }
 
-// Note it returns data via class variables, and relies upon their ordering by the compiler.
-// Currently.. Broken via my alterations to fetchLedData()
-void PulsePlug::fetchData () {
+// Returns ambient light values as an array
+// First item is visual light, second is IR light.
+uint16_t* PulsePlug::fetchALSData () {
+    static uint16_t als_data[2];
+    static uint16_t tmp;
     // read out all result registers as lsb-msb pairs of bytes
     beginTransmission();
-    Wire.write(PulsePlug::RESPONSE);
+    Wire.write(ALS_VIS_DATA0);
     endTransmission();
-    requestData(16);
+    requestData(4);
 
-    byte* p = (byte*) &resp;
-    for (byte i = 0; i < 16; ++i)
-        p[i] = Wire.read();
+    for (int i=0; i<=1; i++) {
+        als_data[i] = Wire.read();
+
+        tmp = Wire.read();
+        als_data[i] += (tmp << 8);
+    }
+
+    return als_data;
 }
 
 // Fetch data from the PS1, PS2 and PS3 registers.

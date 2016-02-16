@@ -112,7 +112,7 @@ public:
     void id();
     byte getReg (byte reg);
     void setReg (byte reg, byte val);
-    void fetchData ();
+    uint16_t* fetchALSData ();
     void setLEDcurrents(byte LED1, byte LED2, byte LED3);
     void setLEDdrive(byte LED1pulse, byte LED2pulse, byte LED3pulse);
     uint16_t* fetchLedData();
