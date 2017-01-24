@@ -16,7 +16,8 @@ Hardware setup:
 Read the chart at the top of the sketch for the correct pins to use for I2C communication.
 Then set the portForSI114 constant to the port number corresponding to the pins you
 wired up.
-For JeeNodes the sensor is plug and play.
+
+For JeeNodes and other Atemga 328 based Arduinos the sensor is plug and play.
 
 Using the sketch:
 See the #defines at the top of the sketch for various printing modes and give them a try.
